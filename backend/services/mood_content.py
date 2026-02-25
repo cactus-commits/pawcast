@@ -166,7 +166,7 @@ def format_texts(mood_name: str, human_name: str, relationship: str) -> dict:
     Return diagnosis, prescription and experts_recommend
     with {human} placeholder replaced by the real human name + relationship.
     """
-    mood = MOOD_CONTENT(mood_name)
+    mood = MOOD_CONTENT[mood_name]
     human_str = f"{human_name} (your {relationship})"
     return {
         "diagnosis": mood["diagnosis"].replace("{human}", human_str),
