@@ -1,4 +1,6 @@
 """
+Mood Content 
+
 All diagnostic mood texts and weather scoring criteria.
 Import MOOD_CONTENT in walks.py to look up content by mood_name.
 """
@@ -26,14 +28,6 @@ MOOD_CONTENT: dict = {
             "End the walk at an outdoor coffee shop for a \"liquid battery\" "
             "(caffeine) for them and a pup cup for you."
         ),
-        "weather_goal": {
-            "optimize_for": "best",
-            "prefer_warmest": True,
-            "max_rain_pct": 10,
-            "max_wind_ms": 4,
-            "require_daylight": True,
-            "maximize_uv": True,
-        },
     },
 
     "posture_emergency": {
@@ -54,16 +48,6 @@ MOOD_CONTENT: dict = {
             "Find a sturdy tree or a fence. Pretend to sniff something very high up "
             "so they have to stretch their neck to see what you're looking at."
         ),
-        "weather_goal": {
-            "optimize_for": "best",
-            "temp_min": -15,
-            "temp_max": 25,
-            "prefer_warmest": True,
-            "max_rain_pct": 10,
-            "max_wind_ms": 5,
-            "require_daylight": True,
-            "maximize_uv": False,
-        },
     },
 
     "doomscroll_detox": {
@@ -86,15 +70,6 @@ MOOD_CONTENT: dict = {
             "Force them to navigate uneven ground so they have to put the phone "
             "in their pocket or risk a \"Major L.\""
         ),
-        "weather_goal": {
-            "optimize_for": "best",
-            "temp_max": 22,
-            "prefer_warmest": False,
-            "max_rain_pct": 20,
-            "max_wind_ms": 6,
-            "require_daylight": True,
-            "maximize_uv": False,
-        },
     },
 
     "long_term_health": {
@@ -116,17 +91,6 @@ MOOD_CONTENT: dict = {
             "Show them how refreshing it is to just drink water and exist in nature "
             "without a \"deliverable.\""
         ),
-        "weather_goal": {
-            "optimize_for": "best",
-            "temp_min": -10,
-            "temp_max": 18,
-            "prefer_warmest": False,
-            "max_rain_pct": 20,
-            "max_wind_ms": 7,
-            "max_humidity_pct": 70,
-            "require_daylight": False,
-            "maximize_uv": False,
-        },
     },
 
     "burnout_recovery": {
@@ -148,17 +112,6 @@ MOOD_CONTENT: dict = {
             "This provides \"Deep Pressure Therapy\" and forces them to stare at a tree "
             "instead of thinking about their \"Inbox Zero\" goal."
         ),
-        "weather_goal": {
-            "optimize_for": "best",
-            "temp_min": -5,
-            "temp_max": 23,
-            "prefer_warmest": False,
-            "max_rain_pct": 15,
-            "max_wind_ms": 4,
-            "require_daylight": False,
-            "prefer_overcast": True,
-            "maximize_uv": False,
-        },
     },
 
     "hygiene_intervention": {
@@ -180,14 +133,6 @@ MOOD_CONTENT: dict = {
             "They need to understand that being wet is a shared experience. "
             "Suggest a warm shower for them immediately after."
         ),
-        "weather_goal": {
-            "optimize_for": "best",
-            "prefer_warmest": False,
-            "min_rain_pct": 50,
-            "maximize_humidity": True,
-            "require_daylight": False,
-            "maximize_uv": False,
-        },
     },
 
     "character_development": {
@@ -209,26 +154,11 @@ MOOD_CONTENT: dict = {
             "No shortcuts. Even if they sigh or pull their hood up, you must stop "
             "to sniff every single vertical surface. "
             "They need to learn patience through suffering."
-        ),
-        "weather_goal": {
-            "optimize_for": "worst",
-            "min_wind_ms": 5,
-            "min_rain_pct": 30,
-            "prefer_coldest": True,
-            "require_daylight": False,
-            "maximize_uv": False,
-        },
+        )
     }
 }
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
-
-def get_mood(mood_name: str) -> dict:
-    """Return mood content or raise KeyError if mood doesn't exist."""
-    if mood_name not in MOOD_CONTENT:
-        raise KeyError(f"Unknown mood: '{mood_name}'. Valid moods: {list(MOOD_CONTENT.keys())}")
-    return MOOD_CONTENT[mood_name]
-
 
 
 def format_texts(mood_name: str, human_name: str, relationship: str) -> dict:
@@ -236,7 +166,7 @@ def format_texts(mood_name: str, human_name: str, relationship: str) -> dict:
     Return diagnosis, prescription and experts_recommend
     with {human} placeholder replaced by the real human name + relationship.
     """
-    mood = get_mood(mood_name)
+    mood = MOOD_CONTENT(mood_name)
     human_str = f"{human_name} (your {relationship})"
     return {
         "diagnosis": mood["diagnosis"].replace("{human}", human_str),
