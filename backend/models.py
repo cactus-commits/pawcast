@@ -16,6 +16,8 @@ class DogCreate(BaseModel):
     breed_identity:     str
     human_name:         str
     human_relationship: HumanRelationship
+    lat:                float | None = None 
+    lon:                float | None = None
     
 
 class DogProfile(DogCreate):
@@ -28,6 +30,8 @@ class WalkRequest(BaseModel):
     dog_name:  str
     city:      str
     mood_name: str
+    lat:       float | None = None   # ← pre-geocoded by autocomplete
+    lon:       float | None = None
 
 class WalkRecommendation(BaseModel):
     dog_name:           str
