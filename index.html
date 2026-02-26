@@ -466,7 +466,8 @@
 
 <script>
 const state = { mood: null, dogName: '', breedIdentity: '', humanName: '', relationship: null, city: '', lat: null, lon: null };
-const API_BASE = window.location.port === '8000' ? '' : 'http://localhost:8000';
+// TODO: replace '' with your Railway URL once deployed, e.g. 'https://pawcast-production.up.railway.app'
+const API_BASE = '';
 let currentScreen = 0, cityTimeout = null, relSelected = false;
 const TOTAL = 6;
 
