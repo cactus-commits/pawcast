@@ -532,15 +532,14 @@ async function showSuggestions(val) {
   const dd = document.getElementById('cityDropdown');
   try {
     const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(val)}&format=json&limit=5&addressdetails=1`
+      `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(val)}&count=5&language=en&format=json`
     );
-    const results = await res.json();
+    const data = await res.json();
+    const results = data.results || [];
     if (!results.length) { dd.style.display='none'; return; }
     dd.innerHTML = results.map(r => {
-      const addr = r.address || {};
-      const name = r.name || addr.city || addr.town || addr.village || r.display_name.split(',')[0].trim();
-      const region = [addr.state, addr.country].filter(Boolean).join(', ');
-      return `<div class="autocomplete-item" onclick="selectCity('${name.replace(/'/g, "\\'")}',${r.lat},${r.lon})"><span class="city-pin">📍</span>${name}${region ? ` <small style="color:var(--muted)">${region}</small>` : ''}</div>`;
+      const region = [r.admin1, r.country].filter(Boolean).join(', ');
+      return `<div class="autocomplete-item" onclick="selectCity('${r.name.replace(/'/g, "\\'")}',${r.latitude},${r.longitude})"><span class="city-pin">📍</span>${r.name}${region ? ` <small style="color:var(--muted)">${region}</small>` : ''}</div>`;
     }).join('');
     dd.style.display = 'block';
   } catch (e) {
