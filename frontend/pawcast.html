@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pawcast</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --white: #ffffff;
+    --off: #fafafa;
+    --border: #e8e8e8;
+    --border-strong: #d0d0d0;
+    --text: #0a0a0a;
+    --muted: #6b6b6b;
+    --subtle: #f4f4f4;
+    --accent: #0a0a0a;
+    --accent-blue: #1a56db;
+    --blue-light: #eff4ff;
+    --green: #16a34a;
+    --green-light: #f0fdf4;
+    --amber: #b45309;
+    --amber-light: #fffbeb;
+    --purple: #6d28d9;
+    --purple-light: #f5f3ff;
+    --tag-bg: #f0f7ff;
+    --tag-text: #1a56db;
+    --radius: 12px;
+    --radius-lg: 20px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--white);
+    color: var(--text);
+    font-family: 'Geist', sans-serif;
+    font-size: 16px;
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .progress-track { position: fixed; top: 0; left: 0; right: 0; height: 2px; background: var(--border); z-index: 999; }
+  .progress-fill { height: 100%; background: var(--accent); transition: width 0.5s cubic-bezier(0.4,0,0.2,1); width: 0%; }
+
+  .nav {
+    position: fixed; top: 0; left: 0; right: 0; height: 60px;
+    display: flex; align-items: center; padding: 0 32px;
+    background: rgba(255,255,255,0.92); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border); z-index: 100; justify-content: space-between;
+  }
+  .nav-logo { font-family: 'Instrument Serif', serif; font-size: 22px; color: var(--text); letter-spacing: -0.3px; }
+  .nav-logo span { color: var(--muted); font-style: italic; }
+  .nav-back { font-size: 13px; font-weight: 500; color: var(--muted); background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: color 0.2s; }
+  .nav-back:hover { color: var(--text); }
+  .step-dots { display: flex; gap: 6px; align-items: center; }
+  .step-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); transition: all 0.3s; }
+  .step-dot.active { background: var(--text); width: 18px; border-radius: 3px; }
+  .step-dot.done { background: var(--border-strong); }
+
+  .screen { display: none; min-height: 100vh; padding: 100px 24px 80px; flex-direction: column; align-items: center; }
+  .screen.active { display: flex; animation: screenIn 0.45s cubic-bezier(0.4,0,0.2,1) forwards; }
+  .screen.exit { animation: screenOut 0.3s cubic-bezier(0.4,0,0.2,1) forwards; }
+
+  @keyframes screenIn { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes screenOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-16px); } }
+
+  /* ── LANDING ── */
+  .landing-inner { max-width: 640px; width: 100%; text-align: center; }
+
+  .trust-pill { display: inline-flex; align-items: center; gap: 8px; background: var(--tag-bg); color: var(--tag-text); font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 100px; margin-bottom: 32px; letter-spacing: 0.3px; }
+  .trust-dot { width: 6px; height: 6px; background: var(--accent-blue); border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } }
+
+  .landing-headline { font-family: 'Instrument Serif', serif; font-size: clamp(32px, 5.5vw, 58px); line-height: 1.1; letter-spacing: -2px; color: var(--text); margin-bottom: 24px; }
+  .landing-headline em { font-style: italic; color: var(--muted); }
+
+  .landing-sub { font-size: 17px; color: var(--muted); line-height: 1.7; margin-bottom: 48px; font-weight: 400; max-width: 560px; margin-left: auto; margin-right: auto; }
+
+  .btn-primary { background: var(--text); color: #fff; font-family: 'Geist', sans-serif; font-size: 15px; font-weight: 500; padding: 14px 32px; border: none; border-radius: var(--radius); cursor: pointer; transition: background 0.2s, transform 0.15s; letter-spacing: -0.2px; margin-bottom: 48px; display: inline-block; }
+  .btn-primary:hover { background: #222; transform: translateY(-1px); }
+
+  .stats-row { display: flex; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; max-width: 480px; width: 100%; margin: 0 auto 40px; }
+  .stat-item { flex: 1; padding: 20px 16px; text-align: center; border-right: 1px solid var(--border); }
+  .stat-item:last-child { border-right: none; }
+  .stat-num { font-family: 'Instrument Serif', serif; font-size: 26px; color: var(--text); display: block; letter-spacing: -0.5px; }
+  .stat-label { font-size: 11px; color: var(--muted); font-weight: 500; letter-spacing: 0.3px; text-transform: uppercase; margin-top: 2px; }
+
+  .section-divider { width: 100%; max-width: 640px; border: none; border-top: 1px solid var(--border); margin: 0 auto 40px; }
+
+  .testimonials-section { width: 100%; max-width: 860px; }
+  .testimonials-heading { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 20px; text-align: center; }
+
+  .testimonials-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 720px) { .testimonials-grid { grid-template-columns: 1fr; } }
+
+  .testimonial-card { background: var(--off); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; display: flex; flex-direction: column; gap: 10px; }
+  .stars { font-size: 12px; color: #f59e0b; letter-spacing: 1px; }
+  .testimonial-headline { font-family: 'Instrument Serif', serif; font-size: 17px; color: var(--text); letter-spacing: -0.3px; line-height: 1.3; }
+  .testimonial-body { font-size: 13px; color: var(--muted); line-height: 1.65; flex: 1; }
+  .testimonial-author { display: flex; align-items: center; gap: 10px; padding-top: 12px; border-top: 1px solid var(--border); margin-top: 4px; }
+  .author-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--subtle); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .author-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .author-breed { font-size: 11px; color: var(--muted); }
+
+  /* ── QUESTION PAGES ── */
+  .q-inner { max-width: 680px; width: 100%; }
+  .q-label { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+  .q-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .q-heading { font-family: 'Instrument Serif', serif; font-size: clamp(28px, 5vw, 46px); line-height: 1.15; letter-spacing: -1px; color: var(--text); margin-bottom: 40px; }
+
+  /* ── MOOD CARDS ── */
+  .mood-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 40px; }
+  @media (max-width: 600px) { .mood-grid { grid-template-columns: 1fr; } }
+
+  .mood-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 22px; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s; text-align: left; background: var(--white); }
+  .mood-card:hover { border-color: var(--border-strong); box-shadow: 0 4px 20px rgba(0,0,0,0.06); transform: translateY(-2px); }
+  .mood-card.selected { border-color: var(--text); box-shadow: 0 0 0 3px rgba(10,10,10,0.08); background: var(--off); }
+
+  .mood-icon-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .mood-icon-svg { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .mood-icon-svg svg { width: 20px; height: 20px; }
+  .mood-check { width: 18px; height: 18px; border: 1.5px solid var(--border-strong); border-radius: 50%; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-size: 10px; color: transparent; flex-shrink: 0; }
+  .mood-card.selected .mood-check { background: var(--text); border-color: var(--text); color: #fff; }
+  .mood-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; letter-spacing: -0.2px; }
+  .mood-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  /* ── INPUTS ── */
+  .input-section { max-width: 480px; width: 100%; display: flex; flex-direction: column; gap: 12px; }
+  .modern-input { width: 100%; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-family: 'Geist', sans-serif; font-size: 16px; padding: 16px 20px; outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+  .modern-input:focus { border-color: var(--text); box-shadow: 0 0 0 3px rgba(10,10,10,0.06); }
+  .modern-input::placeholder { color: #c0c0c0; }
+
+  .autocomplete-wrap { position: relative; }
+  .autocomplete-dropdown { position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 8px 32px rgba(0,0,0,0.1); z-index: 200; overflow: hidden; }
+  .autocomplete-item { padding: 13px 20px; font-size: 14px; color: var(--text); cursor: pointer; border-bottom: 1px solid var(--border); transition: background 0.15s; display: flex; align-items: center; gap: 10px; }
+  .autocomplete-item:last-child { border-bottom: none; }
+  .autocomplete-item:hover { background: var(--subtle); }
+  .city-pin { font-size: 12px; color: var(--muted); }
+
+  .rel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
+  .rel-btn { padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--white); font-family: 'Geist', sans-serif; font-size: 14px; font-weight: 500; color: var(--muted); cursor: pointer; transition: all 0.2s; text-align: center; }
+  .rel-btn:hover { border-color: var(--border-strong); color: var(--text); }
+  .rel-btn.selected { border-color: var(--text); color: var(--text); background: var(--off); box-shadow: 0 0 0 3px rgba(10,10,10,0.06); }
+
+  .btn-next { width: 100%; background: var(--text); color: #fff; font-family: 'Geist', sans-serif; font-size: 15px; font-weight: 500; padding: 16px; border: none; border-radius: var(--radius); cursor: pointer; transition: background 0.2s, transform 0.15s, opacity 0.2s; margin-top: 4px; }
+  .btn-next:hover:not(:disabled) { background: #222; transform: translateY(-1px); }
+  .btn-next:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+
+  /* ── RESULT ── */
+  .result-inner { max-width: 600px; width: 100%; display: flex; flex-direction: column; gap: 12px; }
+  .result-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .result-logo { font-family: 'Instrument Serif', serif; font-size: 18px; color: var(--text); }
+  .result-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--green-light); color: var(--green); font-size: 11px; font-weight: 600; padding: 5px 12px; border-radius: 100px; }
+  .result-badge::before { content: ''; width: 6px; height: 6px; background: var(--green); border-radius: 50%; }
+
+  .result-card { border-radius: var(--radius-lg); padding: 24px 28px; border: 1px solid transparent; transition: box-shadow 0.2s; }
+  .result-card:hover { box-shadow: 0 4px 24px rgba(0,0,0,0.06); }
+  .card-diagnosis { background: var(--blue-light); border-color: #c7d9ff; }
+  .card-prescription { background: var(--amber-light); border-color: #fde8a3; }
+  .card-experts { background: var(--purple-light); border-color: #d4c7f9; }
+
+  .result-card-label { font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 14px; }
+  .card-diagnosis .result-card-label { color: #1a56db; }
+  .card-prescription .result-card-label { color: var(--amber); }
+  .card-experts .result-card-label { color: var(--purple); }
+
+  .result-text { font-size: 15px; color: var(--text); line-height: 1.75; white-space: pre-line; }
+
+  .time-card { border-radius: var(--radius-lg); padding: 28px; text-align: center; border: 1px solid transparent; transition: background 0.8s ease; }
+  .time-card.weather-sunny { background: linear-gradient(135deg, #fef9c3, #fef3c7); border-color: #fde68a; }
+  .time-card.weather-cloudy { background: linear-gradient(135deg, #f1f5f9, #e2e8f0); border-color: #cbd5e1; }
+  .time-card.weather-rainy { background: linear-gradient(135deg, #eff6ff, #dbeafe); border-color: #bfdbfe; }
+  .time-card.weather-cold { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border-color: #bae6fd; }
+  .time-card.weather-default { background: var(--off); border-color: var(--border); }
+
+  .time-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .time-card-label { font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; }
+  .time-card-location { display: flex; align-items: center; gap: 5px; font-size: 13px; color: var(--muted); font-weight: 500; }
+  .time-card-location-pin { font-size: 13px; }
+  .time-value { font-family: 'Instrument Serif', serif; font-size: clamp(32px, 6vw, 52px); color: var(--text); letter-spacing: -1px; line-height: 1; margin-bottom: 20px; }
+  .weather-chips { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .chip { background: rgba(255,255,255,0.7); color: var(--muted); font-size: 12px; font-weight: 500; padding: 6px 14px; border-radius: 100px; border: 1px solid rgba(0,0,0,0.08); backdrop-filter: blur(4px); }
+
+  .btn-restart { background: transparent; color: var(--muted); font-family: 'Geist', sans-serif; font-size: 14px; font-weight: 500; padding: 12px 20px; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; transition: all 0.2s; align-self: center; margin-top: 8px; }
+  .btn-restart:hover { border-color: var(--border-strong); color: var(--text); }
+
+  .loading-shimmer { background: linear-gradient(90deg, #ebebeb 25%, #d8d8d8 50%, #ebebeb 75%); background-size: 200% 100%; animation: shimmer 1.5s ease-in-out infinite; border-radius: 6px; height: 15px; margin-bottom: 10px; }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+</style>
+</head>
+<body>
+
+<div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+
+<nav class="nav">
+  <div class="nav-logo">Paw<span>cast</span></div>
+  <div class="step-dots" id="stepDots"></div>
+  <button class="nav-back" id="navBack" style="visibility:hidden" onclick="goBack()">← Back</button>
+</nav>
+
+<!-- SCREEN 0: LANDING -->
+<div class="screen active" id="screen-0">
+  <div class="landing-inner">
+    <div class="trust-pill"><span class="trust-dot"></span>Trusted by 40,000+ dogs worldwide</div>
+
+    <h1 class="landing-headline">Manage your human.<br><em>Better walks.</em> Better vibes.</h1>
+
+    <p class="landing-sub">Stop waiting for them to check the sky. Pawcast syncs live weather data with canine intuition to schedule the interventions they didn't know they needed. Science-backed. Dog-led.</p>
+
+    <button class="btn-primary" onclick="goTo(1)">Run Diagnostics →</button>
+
+    <div class="stats-row">
+      <div class="stat-item"><span class="stat-num">40k+</span><span class="stat-label">Active dogs</span></div>
+      <div class="stat-item"><span class="stat-num">12</span><span class="stat-label">Countries</span></div>
+      <div class="stat-item"><span class="stat-num">5/5</span><span class="stat-label">Paw rating</span></div>
+    </div>
+
+    <hr class="section-divider">
+
+    <div class="testimonials-section">
+      <div class="testimonials-heading">What dogs are saying</div>
+      <div class="testimonials-grid">
+        <div class="testimonial-card">
+          <div class="stars">★★★★★</div>
+          <div class="testimonial-headline">"10/10. Absolute Game Changer."</div>
+          <p class="testimonial-body">My human was stuck in a 'Posture Emergency' for three days straight. Pawcast identified a high-wind window at 4:15 PM that forced her to look up and engage her core just to stay on the sidewalk. Her spine is back to factory settings. Slay.</p>
+          <div class="testimonial-author">
+            <div class="author-avatar">🐕</div>
+            <div><div class="author-name">Dallas</div><div class="author-breed">Golden Retriever</div></div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="stars">★★★★★</div>
+          <div class="testimonial-headline">"Finally, some Grit."</div>
+          <p class="testimonial-body">My human was getting soft. Pawcast found a 'Character Development' window during a light sleet. We're three weeks into the protocol and he's stopped complaining about 'cold ears.' He's finally becoming the main character I knew he could be.</p>
+          <div class="testimonial-author">
+            <div class="author-avatar">🐩</div>
+            <div><div class="author-name">Disco</div><div class="author-breed">Schnauzer</div></div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="stars">★★★★★</div>
+          <div class="testimonial-headline">"Saved my Thumbs."</div>
+          <p class="testimonial-body">I was suffering from severe neglect due to my human's 'Doomscroll Psychosis.' Pawcast scheduled an intervention during a 5G dead-zone at the park. For thirty whole minutes, she actually looked at a tree instead of a TikTok. It was beautiful.</p>
+          <div class="testimonial-author">
+            <div class="author-avatar">🦮</div>
+            <div><div class="author-name">Bella</div><div class="author-breed">Lurcher</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 1: MOOD -->
+<div class="screen" id="screen-1">
+  <div class="q-inner">
+    <div class="q-label">Step 1 of 5 — Diagnosis</div>
+    <h2 class="q-heading">Which of these best<br>describes your human?</h2>
+    <div class="mood-grid">
+
+      <div class="mood-card" onclick="selectMood(this,'low_battery')">
+        <div class="mood-icon-row">
+          <div class="mood-icon-svg" style="background:#fff7ed;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="7" width="16" height="10" rx="2"/><path d="M22 11v2"/>
+              <path d="M6 12h4"/><path d="M10 10v4"/>
+            </svg>
+          </div>
+          <span class="mood-check">✓</span>
+        </div>
+        <div class="mood-title">Low Battery Human</div>
+        <div class="mood-desc">Is your human literally rotting in bed and not in a cute way? Are they treating the duvet like a personality trait and haven't seen a UV ray in the last couple of days?</div>
+      </div>
+
+      <div class="mood-card" onclick="selectMood(this,'posture_emergency')">
+        <div class="mood-icon-row">
+          <div class="mood-icon-svg" style="background:#fdf2f8;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#be185d" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/><path d="M12 7v5"/><path d="M9 10l-3 8"/><path d="M15 10l3 8"/><path d="M9 18h6"/>
+            </svg>
+          </div>
+          <span class="mood-check">✓</span>
+        </div>
+        <div class="mood-title">Posture Emergency</div>
+        <div class="mood-desc">Is your human's spine currently cosplaying as a croissant? Have you already tried to put your head on their lap to straighten them out, only to have them remain in a folded slump?</div>
+      </div>
+
+      <div class="mood-card" onclick="selectMood(this,'doomscroll_detox')">
+        <div class="mood-icon-row">
+          <div class="mood-icon-svg" style="background:#eff4ff;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1a56db" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="5" y="2" width="14" height="20" rx="2"/>
+              <line x1="9" y1="7" x2="15" y2="7"/><line x1="9" y1="11" x2="15" y2="11"/><line x1="9" y1="15" x2="12" y2="15"/>
+              <line x1="4" y1="4" x2="20" y2="20" stroke="#be185d" stroke-width="1.8"/>
+            </svg>
+          </div>
+          <span class="mood-check">✓</span>
+        </div>
+        <div class="mood-title">Doomscroll Detox</div>
+        <div class="mood-desc">Is your human caught in a vertical-swipe psychosis? Are they ignoring your squeaky toy just to watch a 'Day in the Life' video of someone else's dog? Major L.</div>
+      </div>
+
+      <div class="mood-card" onclick="selectMood(this,'long_term_health')">
+        <div class="mood-icon-row">
+          <div class="mood-icon-svg" style="background:#f0fdf4;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+            </svg>
+          </div>
+          <span class="mood-check">✓</span>
+        </div>
+        <div class="mood-title">Long Term Health Investment</div>
+        <div class="mood-desc">Is your human currently treating their body like a rental car they don't plan on returning? Time for preventative maintenance to ensure they can fill your bowl for years to come?</div>
+      </div>
+
+      <div class="mood-card" onclick="selectMood(this,'character_development')">
+        <div class="mood-icon-row">
+          <div class="mood-icon-svg" style="background:#fefce8;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#ca8a04" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>
+          </div>
+          <span class="mood-check">✓</span>
+        </div>
+        <div class="mood-title">Character Development Arc</div>
+        <div class="mood-desc">Is your human getting a bit 'soft' and heavily reliant on AC and 'convenience'? Do they need a challenge to build some actual grit and remember what the elements feel like?</div>
+      </div>
+
+      <div class="mood-card" onclick="selectMood(this,'hygiene_intervention')">
+        <div class="mood-icon-row">
+          <div class="mood-icon-svg" style="background:#f0f9ff;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2c0 0-7 7-7 12a7 7 0 0 0 14 0c0-5-7-12-7-12z"/>
+              <path d="M12 10v4"/><path d="M10 12h4"/>
+            </svg>
+          </div>
+          <span class="mood-check">✓</span>
+        </div>
+        <div class="mood-title">Natural Hygiene Intervention</div>
+        <div class="mood-desc">Is the dry shampoo fighting for its life and losing? Has your human not met a water droplet in days, causing a 'gamer musk' that offends your 300 million scent receptors?</div>
+      </div>
+
+      <div class="mood-card" onclick="selectMood(this,'burnout_recovery')">
+        <div class="mood-icon-row">
+          <div class="mood-icon-svg" style="background:#f5f3ff;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#6d28d9" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 8v4"/><path d="M12 16h.01"/>
+            </svg>
+          </div>
+          <span class="mood-check">✓</span>
+        </div>
+        <div class="mood-title">Burnout Recovery Protocol</div>
+        <div class="mood-desc">Is your human's 'internal server' overheating from having 47 tabs open in their brain? Have they moved past 'regular tired' into 'glitch' territory where they just stare at the fridge?</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 2: DOG NAME -->
+<div class="screen" id="screen-2">
+  <div class="q-inner">
+    <div class="q-label">Step 2 of 5 — Your Profile</div>
+    <h2 class="q-heading">What is your name,<br>good dog?</h2>
+    <div class="input-section">
+      <input class="modern-input" id="dogName" type="text" placeholder="e.g. Buddy" maxlength="30" autocomplete="off"
+        oninput="checkInput('dogName','btn-dogname')"
+        onkeydown="if(event.key==='Enter') nextIfValid('dogName','btn-dogname',3)">
+      <button class="btn-next" id="btn-dogname" disabled onclick="goTo(3)">Continue</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 3: BREED -->
+<div class="screen" id="screen-3">
+  <div class="q-inner">
+    <div class="q-label">Step 3 of 5 — Identity</div>
+    <h2 class="q-heading">What breed do you<br>identify as?</h2>
+    <div class="input-section">
+      <input class="modern-input" id="breedIdentity" type="text" placeholder="e.g. Chaotic Golden Retriever" maxlength="40" autocomplete="off"
+        oninput="checkInput('breedIdentity','btn-breed')"
+        onkeydown="if(event.key==='Enter') nextIfValid('breedIdentity','btn-breed',4)">
+      <button class="btn-next" id="btn-breed" disabled onclick="goTo(4)">Continue</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 4: HUMAN -->
+<div class="screen" id="screen-4">
+  <div class="q-inner">
+    <div class="q-label">Step 4 of 5 — Human Data</div>
+    <h2 class="q-heading">Your human's name<br>and relationship?</h2>
+    <div class="input-section">
+      <input class="modern-input" id="humanName" type="text" placeholder="Human's name" maxlength="30" autocomplete="off" oninput="updateHumanBtn()">
+      <div class="rel-grid">
+        <button class="rel-btn" onclick="selectRel(this,'MOM')">Mom</button>
+        <button class="rel-btn" onclick="selectRel(this,'DAD')">Dad</button>
+        <button class="rel-btn" onclick="selectRel(this,'KID')">Kid</button>
+        <button class="rel-btn" onclick="selectRel(this,'OTHER')">Other</button>
+      </div>
+      <button class="btn-next" id="btn-human" disabled onclick="goTo(5)">Continue</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 5: LOCATION -->
+<div class="screen" id="screen-5">
+  <div class="q-inner">
+    <div class="q-label">Step 5 of 5 — Location</div>
+    <h2 class="q-heading">What's your<br>current location?</h2>
+    <div class="input-section">
+      <div class="autocomplete-wrap">
+        <input class="modern-input" id="cityInput" type="text" placeholder="City name" maxlength="50" autocomplete="off"
+          oninput="handleCityInput(this.value)"
+          onkeydown="if(event.key==='Enter') submitCity()">
+        <div class="autocomplete-dropdown" id="cityDropdown" style="display:none"></div>
+      </div>
+      <button class="btn-next" id="btn-city" disabled onclick="fetchAndShow()">Get Walk Forecast →</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 6: RESULT -->
+<div class="screen" id="screen-6">
+  <div class="result-inner">
+    <div class="result-top">
+      <div class="result-logo">Pawcast</div>
+      <div class="result-badge">Diagnosis complete</div>
+    </div>
+
+    <div class="result-card card-diagnosis">
+      <div class="result-card-label">Clinical Diagnosis</div>
+      <div class="result-text" id="resultDiagnosis"></div>
+    </div>
+
+    <div class="result-card card-prescription">
+      <div class="result-card-label">The Prescription</div>
+      <div class="result-text" id="resultPrescription"></div>
+    </div>
+
+    <div class="time-card weather-default" id="timeCard">
+      <div class="time-card-top">
+        <div class="time-card-label">Optimal Deployment Window</div>
+        <div class="time-card-location" id="timeCardLocation" style="display:none">
+          <span class="time-card-location-pin">📍</span>
+          <span id="timeCardCity">—</span>
+        </div>
+      </div>
+      <div class="time-value" id="resultTime">—</div>
+      <div class="weather-chips" id="weatherChips"></div>
+    </div>
+
+    <div class="result-card card-experts">
+      <div class="result-card-label">Experts Also Recommend</div>
+      <div class="result-text" id="resultExperts"></div>
+    </div>
+
+    <button class="btn-restart" onclick="restart()">← New Diagnosis</button>
+  </div>
+</div>
+
+<script>
+const state = { mood: null, dogName: '', breedIdentity: '', humanName: '', relationship: null, city: '', lat: null, lon: null };
+const API_BASE = window.location.port === '8000' ? '' : 'http://localhost:8000';
+let currentScreen = 0, cityTimeout = null, relSelected = false;
+const TOTAL = 6;
+
+function renderDots(n) {
+  const el = document.getElementById('stepDots');
+  if (n === 0) { el.innerHTML = ''; return; }
+  el.innerHTML = Array.from({length: TOTAL - 1}, (_,i) =>
+    `<div class="step-dot ${i+1 < n ? 'done' : i+1 === n ? 'active' : ''}"></div>`).join('');
+}
+
+function goTo(n) {
+  const cur = document.getElementById(`screen-${currentScreen}`);
+  cur.classList.add('exit');
+  setTimeout(() => {
+    cur.classList.remove('active','exit');
+    currentScreen = n;
+    const nxt = document.getElementById(`screen-${n}`);
+    nxt.classList.add('active');
+    document.getElementById('progressFill').style.width = Math.round((n/TOTAL)*100)+'%';
+    document.getElementById('navBack').style.visibility = n > 0 ? 'visible' : 'hidden';
+    renderDots(n);
+    const inp = nxt.querySelector('.modern-input');
+    if (inp) setTimeout(() => inp.focus(), 400);
+  }, 280);
+}
+
+function goBack() { if (currentScreen > 0) goTo(currentScreen - 1); }
+
+function selectMood(el, mood) {
+  document.querySelectorAll('.mood-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  state.mood = mood;
+  setTimeout(() => goTo(2), 320);
+}
+
+function checkInput(id, btnId) {
+  document.getElementById(btnId).disabled = document.getElementById(id).value.trim().length < 1;
+}
+function nextIfValid(id, btnId, target) {
+  if (document.getElementById(id).value.trim().length > 0) goTo(target);
+}
+
+function selectRel(el, rel) {
+  document.querySelectorAll('.rel-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  state.relationship = rel;
+  relSelected = true;
+  updateHumanBtn();
+}
+function updateHumanBtn() {
+  document.getElementById('btn-human').disabled =
+    document.getElementById('humanName').value.trim().length < 1 || !relSelected;
+}
+
+function handleCityInput(val) {
+  document.getElementById('btn-city').disabled = val.trim().length < 2;
+  state.lat = null; state.lon = null;
+  clearTimeout(cityTimeout);
+  if (val.trim().length < 2) { document.getElementById('cityDropdown').style.display='none'; return; }
+  cityTimeout = setTimeout(() => showSuggestions(val), 300);
+}
+async function showSuggestions(val) {
+  const dd = document.getElementById('cityDropdown');
+  try {
+    const res = await fetch(`${API_BASE}/autocomplete?q=${encodeURIComponent(val)}`);
+    const results = await res.json();
+    if (!results.length) { dd.style.display='none'; return; }
+    dd.innerHTML = results.map(r => {
+      const region = r.full_name.split(',').slice(1, 2).join('').trim();
+      return `<div class="autocomplete-item" onclick="selectCity('${r.name.replace(/'/g, "\\'")}',${r.lat},${r.lon})"><span class="city-pin">📍</span>${r.name}${region ? ` <small style="color:var(--muted)">${region}</small>` : ''}</div>`;
+    }).join('');
+    dd.style.display = 'block';
+  } catch (e) {
+    dd.style.display = 'none';
+  }
+}
+function selectCity(city, lat, lon) {
+  document.getElementById('cityInput').value = city;
+  document.getElementById('cityDropdown').style.display = 'none';
+  document.getElementById('btn-city').disabled = false;
+  state.city = city;
+  state.lat = lat ?? null;
+  state.lon = lon ?? null;
+}
+function submitCity() {
+  const val = document.getElementById('cityInput').value.trim();
+  if (val.length > 1) { state.city = val; fetchAndShow(); }
+}
+
+async function fetchAndShow() {
+  state.dogName = document.getElementById('dogName').value.trim();
+  state.breedIdentity = document.getElementById('breedIdentity').value.trim();
+  state.humanName = document.getElementById('humanName').value.trim();
+  state.city = document.getElementById('cityInput').value.trim();
+  goTo(6);
+
+  ['resultDiagnosis','resultPrescription','resultExperts'].forEach(id => {
+    document.getElementById(id).innerHTML = `
+      <div class="loading-shimmer" style="width:85%"></div>
+      <div class="loading-shimmer" style="width:65%"></div>
+      <div class="loading-shimmer" style="width:75%"></div>`;
+  });
+  document.getElementById('resultTime').textContent = '—';
+  document.getElementById('weatherChips').innerHTML = '';
+
+  // show location immediately
+  document.getElementById('timeCardCity').textContent = state.city || 'Unknown';
+  document.getElementById('timeCardLocation').style.display = 'flex';
+
+  try {
+    // Ensure dog is registered — check first, register if missing
+    const checkRes = await fetch(`${API_BASE}/dogs/${encodeURIComponent(state.dogName)}`);
+    if (checkRes.status === 404) {
+      const regRes = await fetch(`${API_BASE}/dogs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dog_name: state.dogName,
+          city: state.city,
+          breed_identity: state.breedIdentity || '',
+          human_name: state.humanName,
+          human_relationship: (state.relationship || 'other').toLowerCase(),
+          lat: state.lat,
+          lon: state.lon
+        })
+      });
+      if (!regRes.ok) throw new Error('Could not register dog profile.');
+    }
+
+    // Get walk recommendation from the real backend
+    const walkRes = await fetch(`${API_BASE}/walks`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        dog_name: state.dogName,
+        city: state.city,
+        mood_name: state.mood,
+        lat: state.lat,
+        lon: state.lon
+      })
+    });
+    if (!walkRes.ok) {
+      const err = await walkRes.json().catch(() => ({}));
+      throw new Error(err.detail || 'Walk recommendation failed.');
+    }
+    const rec = await walkRes.json();
+    const w = rec.weather;
+
+    // Set weather background class based on real data
+    const tc = document.getElementById('timeCard');
+    tc.className = 'time-card';
+    if (w.rain_probability > 50) tc.classList.add('weather-rainy');
+    else if (w.temp < 2) tc.classList.add('weather-cold');
+    else if (w.cloud_cover < 30) tc.classList.add('weather-sunny');
+    else tc.classList.add('weather-cloudy');
+
+    document.getElementById('resultTime').textContent = rec.recommended_time;
+    document.getElementById('weatherChips').innerHTML =
+      `<div class="chip">🌡 ${w.temp}°C</div>` +
+      `<div class="chip">💨 ${w.wind} m/s</div>` +
+      `<div class="chip">🌧 ${Math.round(w.rain_probability)}% rain</div>` +
+      `<div class="chip">☁ ${Math.round(w.cloud_cover)}% cloud</div>`;
+    document.getElementById('resultDiagnosis').textContent = rec.diagnosis;
+    document.getElementById('resultPrescription').textContent = rec.prescription;
+    document.getElementById('resultExperts').textContent = rec.experts_recommend;
+
+  } catch (e) {
+    document.getElementById('resultDiagnosis').textContent = `Something went wrong: ${e.message}`;
+    document.getElementById('resultPrescription').textContent = '';
+    document.getElementById('resultExperts').textContent = '';
+    document.getElementById('resultTime').textContent = 'N/A';
+  }
+}
+
+function restart() { state.mood = null; relSelected = false; goTo(0); }
+</script>
+</body>
+</html>
