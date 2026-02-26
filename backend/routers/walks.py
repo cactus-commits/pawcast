@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException
 
 from backend.database import get_supabase
-from backend.models import WalkRecommendation, WalkRecord, WalkRequest
-from backend.services.mood_engine import ALL_MOODS, pick_walk_window
+from backend.models import WalkRecommendation, WalkRequest
+from backend.services.mood_engine import DIAGNOSTIC_MOODS, pick_walk_window
 from backend.services.weather_service import fetch_hourly_forecast, geocode_city
 
 router = APIRouter(prefix="/walks", tags=["walks"])
