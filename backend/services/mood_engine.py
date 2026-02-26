@@ -431,7 +431,7 @@ def pick_walk_window(
     texts = format_texts(mood_name, human_name, relationship)
 
     return {
-        "mood": mood_name,
+        "mood_name": mood_name,
         "recommended_time": time_str,
         "diagnosis": cold_note + texts["diagnosis"],
         "prescription": texts["prescription"],
@@ -458,7 +458,7 @@ def _fallback_response(
 ) -> dict:
     """Return a sarcastic fallback when no suitable window is found."""
     return {
-        "mood": mood_name,
+        "mood_name": mood_name,
         "recommended_time": "N/A",
         "diagnosis": random.choice(fallbacks),
         "prescription": "Try again tomorrow. Or just open a window and point at it.",

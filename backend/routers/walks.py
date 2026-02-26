@@ -21,7 +21,7 @@ def list_moods():
 @router.post("", response_model=WalkRecommendation)
 async def create_walk(body: WalkRequest):
     """Submit a mood + city → get the ideal (or worst) walk time."""
-    if body.mood_name not in ALL_MOODS:
+    if body.mood_name not in DIAGNOSTIC_MOODS:
         raise HTTPException(
             400,
             f"Unknown mood: {body.mood_name!r}. "

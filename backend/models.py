@@ -33,6 +33,14 @@ class WalkRequest(BaseModel):
     lat:       float | None = None   # ← pre-geocoded by autocomplete
     lon:       float | None = None
 
+class WeatherSnapshot(BaseModel):
+    temp: float
+    wind: float
+    rain_probability: float
+    cloud_cover: float
+    uv_index: float = 0.0
+
+
 class WalkRecommendation(BaseModel):
     dog_name:           str
     mood_name:          str
@@ -40,4 +48,4 @@ class WalkRecommendation(BaseModel):
     prescription:       str
     experts_recommend:  str
     recommended_time:   str
-    weather_summary:    str
+    weather:    WeatherSnapshot
