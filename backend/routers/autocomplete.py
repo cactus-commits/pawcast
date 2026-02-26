@@ -28,7 +28,7 @@ async def autocomplete_city(q: str = Query(..., min_length=2)):
         "q": q,
         "format": "json",
         "limit": 5,
-        "featuretype": "city",
+        "addressdetails": 1,
     }
     headers = {
         "User-Agent": "Pawcast/0.1 (pawcast-app)",
@@ -54,14 +54,18 @@ async def autocomplete_city(q: str = Query(..., min_length=2)):
 
     results = [
         {
-           "name": r.get("name", ""),
+            "name": r.get("name", ""),
             "full_name": ", ".join(
-                filter(None, [r.get("name"), r.get("state"), r.get("country")])
+                filter(None, [
+                    r.get("name"),
+                    r.get("address", {}).get("state"),
+                    r.get("address", {}).get("country"),
+                ])
             ),
             "lat": float(r["lat"]),
             "lon": float(r["lon"]),
         }
-        for r in results_raw 
+        for r in results_raw
     ]
 
     _cache[key] = (time.monotonic(), results)

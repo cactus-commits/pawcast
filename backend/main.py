@@ -11,7 +11,7 @@ from fastapi.responses import FileResponse
 
 from backend.routers import dogs, walks, weather, autocomplete
 
-_FRONTEND = pathlib.Path(__file__).parent.parent / "frontend" / "pawcast-modern.html"
+_FRONTEND = pathlib.Path(__file__).parent.parent / "index.html"
 
 app = FastAPI(
     title="Pawcast",
