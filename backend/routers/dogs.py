@@ -7,6 +7,16 @@ from backend.services.weather_service import geocode_city
 router = APIRouter(prefix="/dogs", tags=["dogs"])
 
 
+@router.get("/{dog_name}", response_model=DogProfile)
+def get_dog(dog_name: str):
+    """Look up a dog profile by name."""
+    db = get_supabase()
+    result = db.table("dogs").select("*").eq("dog_name", dog_name).limit(1).execute()
+    if not result.data:
+        raise HTTPException(404, f"Dog {dog_name!r} not found.")
+    return DogProfile(**result.data[0])
+
+
 @router.post("", response_model=DogProfile, status_code=201)
 async def create_dog(body: DogCreate):
     """Register a new dog profile.  Geocodes the city automatically."""
