@@ -467,9 +467,7 @@
 
 <script>
 const state = { mood: null, dogName: '', breedIdentity: '', humanName: '', relationship: null, city: '', lat: null, lon: null };
-const API_BASE = (window.location.hostname === 'localhost' || window.location.protocol === 'file:')
-  ? 'http://localhost:8000'
-  : 'https://web-production-95675.up.railway.app';
+const API_BASE = 'https://web-production-95675.up.railway.app';
 let currentScreen = 0, cityTimeout = null, relSelected = false;
 const TOTAL = 6;
 
