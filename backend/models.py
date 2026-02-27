@@ -27,11 +27,13 @@ class DogProfile(DogCreate):
 # --- Walks ---
 
 class WalkRequest(BaseModel):
-    dog_name:  str
-    city:      str
-    mood_name: str
-    lat:       float | None = None   # ← pre-geocoded by autocomplete
-    lon:       float | None = None
+    dog_name:           str
+    city:               str
+    mood_name:          str
+    human_name:         str
+    human_relationship: HumanRelationship
+    lat:                float | None = None
+    lon:                float | None = None
 
 class WeatherSnapshot(BaseModel):
     temp: float

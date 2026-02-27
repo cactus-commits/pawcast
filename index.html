@@ -581,26 +581,7 @@ async function fetchAndShow() {
   document.getElementById('timeCardLocation').style.display = 'flex';
 
   try {
-    // Ensure dog is registered — check first, register if missing
-    const checkRes = await fetch(`${API_BASE}/dogs/${encodeURIComponent(state.dogName)}`);
-    if (checkRes.status === 404) {
-      const regRes = await fetch(`${API_BASE}/dogs`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          dog_name: state.dogName,
-          city: state.city,
-          breed_identity: state.breedIdentity || '',
-          human_name: state.humanName,
-          human_relationship: (state.relationship || 'other').toLowerCase(),
-          lat: state.lat,
-          lon: state.lon
-        })
-      });
-      if (!regRes.ok) throw new Error('Could not register dog profile.');
-    }
-
-    // Get walk recommendation from the real backend
+    // Get walk recommendation from the backend
     const walkRes = await fetch(`${API_BASE}/walks`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -608,6 +589,8 @@ async function fetchAndShow() {
         dog_name: state.dogName,
         city: state.city,
         mood_name: state.mood,
+        human_name: state.humanName,
+        human_relationship: (state.relationship || 'other').toLowerCase(),
         lat: state.lat,
         lon: state.lon
       })
