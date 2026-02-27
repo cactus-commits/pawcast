@@ -467,11 +467,9 @@
 
 <script>
 const state = { mood: null, dogName: '', breedIdentity: '', humanName: '', relationship: null, city: '', lat: null, lon: null };
-// Local dev: backend runs on localhost:8000.
-// After deploying to Railway, replace the localhost URL with your Railway URL.
 const API_BASE = (window.location.hostname === 'localhost' || window.location.protocol === 'file:')
   ? 'http://localhost:8000'
-  : ''; // on Railway the backend serves this file, so relative URLs work
+  : 'https://web-production-95675.up.railway.app';
 let currentScreen = 0, cityTimeout = null, relSelected = false;
 const TOTAL = 6;
 
