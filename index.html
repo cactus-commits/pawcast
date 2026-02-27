@@ -467,8 +467,11 @@
 
 <script>
 const state = { mood: null, dogName: '', breedIdentity: '', humanName: '', relationship: null, city: '', lat: null, lon: null };
-// TODO: replace '' with your Railway URL once deployed, e.g. 'https://pawcast-production.up.railway.app'
-const API_BASE = '';
+// Local dev: backend runs on localhost:8000.
+// After deploying to Railway, replace the localhost URL with your Railway URL.
+const API_BASE = (window.location.hostname === 'localhost' || window.location.protocol === 'file:')
+  ? 'http://localhost:8000'
+  : ''; // on Railway the backend serves this file, so relative URLs work
 let currentScreen = 0, cityTimeout = null, relSelected = false;
 const TOTAL = 6;
 
